@@ -1,0 +1,215 @@
+---
+title: "Kriging"
+author: "Nothando Maloleka"
+date: "2023-10-08"
+output:
+  word_document: default
+  html_document: default
+---
+```{r}
+
+#The distribution of Rainfall in Switzerland
+library(geoR)
+points(sic.100, borders=sic.borders,col="green")
+points(sic.367, borders=sic.borders,col="red",add=TRUE)
+library(geoR)
+plot.geodata(sic.100,bor=sic.borders)
+
+#Descriptive Statistics 
+library(geoR)
+library(fields)
+vario.b<- variog(sic.100,option =c ("bin", "cloud", "smooth"),
+bin.cloud=TRUE)
+
+```
+`````{r}
+library("geoR")
+vario.ex<- variog(sic.100, bin.cloud=TRUE)
+plot(vario.ex,main="")
+lines.variomodel(cov.model="spher",cov.pars=c(15000,50),
+nug=0,max.dist=300)
+````
+
+
+```{r}
+library(geoR)
+pred.grid <- expand.grid(seq(0,350, l=51),seq (0,220, l=51))
+rgb.palette <- colorRampPalette(c("blue", "lightblue",
+"orange", "red"),space = "rgb")
+kc<- krige.conv(sic.100, loc = pred.grid,
+krige=krige.control(cov.model="spherical",cov.pars=c(15000,50)))
+image(kc, loc = pred.grid,col =rgb.palette(20) ,xlab="Coord X",
+ylab="Coord Y",borders=sic.borders,main="Estimation")
+image(kc, krige.var,loc = pred.grid,col=rgb.palette(20),
+xlab="Coord X",ylab="Coord Y",borders=sic.borders,
+main="Kriging variance")
+
+```
+````{r}
+#Estimated and Observed values
+library("geoR")
+kc1<- krige.conv(sic.100, loc = sic.100$coords,
+krige=krige.control(cov.model="spherical",cov.pars=c(16000,47)))
+kc2<- krige.conv(sic.100, loc = sic.367$coords,
+krige=krige.control(cov.model="spherical",cov.pars=c(16000,47)))
+plot(sic.100$data,kc1$predict,xlab="Observed",ylab="Estimated",
+main="Control sample")
+abline(a=0,b=1,col="red")
+plot(sic.367$data,kc2$predict,,xlab="Observed",ylab="Estimated",
+main="Control")
+abline(a=0,b=1,col="red")    
+
+`````
+
+````{r}
+#Descriptive statistics after Box-Cox Transformation
+library("geoR")
+plot.geodata(sic.100,bor=sic.borders,lambda=0.5)
+````
+``````{r}
+library("geoR")
+vario.ext <- variog(sic.100, option = "bin", lambda = 0.5)
+plot(vario.ext)
+lines.variomodel(cov.m = "mat", cov.p = c(105, 36), nug = 6.9,
+                 max.dist = 300, kappa = 1, lty = 1)
+``````
+
+
+
+`````{r}
+library(geoR)
+kct<- krige.conv(sic.100, loc = pred.grid,
+krige=krige.control(cov.model="matern",cov.pars=c(105, 36),
+kappa=1,nugget=6.9,lambda=0.5))
+pred.grid <- expand.grid(seq(0,350, l=51),seq (0,220, l=51))
+rgb.palette <- colorRampPalette(c("blue", "lightblue",
+"orange", "red"),space = "rgb")
+image(kct, loc = pred.grid,col =rgb.palette(20) , xlab="Coord X",
+ylab="Coord Y",borders=sic.borders,main="Estimation") 
+krige.var1<- kct$krige.var
+image(kct, krige.var1,loc = pred.grid,col =rgb.palette(20) ,
+xlab="Coord X",ylab="Coord Y",borders=sic.borders,
+main="Kriging variance")
+
+````
+`
+
+
+```````{r}
+#Anistrophic Kriging
+library("geoR")
+kc_aniso <- krige.conv(sic.100, loc = pred.grid,
+                       krige = krige.control(cov.model = "spherical", cov.pars = c(15000, 50),
+                                             aniso = c(1, 2)))
+
+# Visualization
+image(kc_aniso, loc = pred.grid, col = rgb.palette(20),
+      xlab = "Coord X", ylab = "Coord Y", borders = sic.borders,
+      main = "Anisotropic Kriging")
+
+#Universal Kriging
+
+library(geoR)
+data(SIC)
+points(sic.100, borders = sic.borders, pch=20, cex.max=3)
+max.dist <- 220
+sic.bin<-variog(sic.100,option="bin",estimator.type="classical",
+max.dist=max.dist)
+
+```````
+```````{r}
+
+krige.control(cov.model = "gaussian", cov.pars = c(15000, 50))
+krige.control(cov.model = "spherical", cov.pars = c(20000, 30))
+krige.control(cov.model = "spherical", cov.pars = c(15000, 50), aniso = c(1, 2))
+library("geoR")
+kc_aniso <- krige.conv(sic.100, loc = pred.grid,
+                       krige = krige.control(cov.model = "spherical", cov.pars = c(15000, 50),
+                                             aniso = c(1, 2)))
+
+#Kriging with Gaussian Covariance Model
+
+library("geoR")
+kc_gaussian <- krige.conv(sic.100, loc = pred.grid,
+                          krige = krige.control(cov.model = "gaussian", cov.pars = c(15000, 50)))
+
+# Visualization
+image(kc_gaussian, loc = pred.grid, col = rgb.palette(20),
+      xlab = "Coord X", ylab = "Coord Y", borders = sic.borders,
+      main = "Kriging with Gaussian Covariance Model")
+
+`````
+`````{r}
+library(geoR)
+kct1<- krige.conv(sic.100, loc = sic.100$coords,
+krige=krige.control(cov.model="spherical",cov.pars=c(16000,47),
+kappa=1,nugget=6.9,lambda=0.5))
+kct2<- krige.conv(sic.100, loc = sic.367$coords,
+krige=krige.control(cov.model="spherical",cov.pars=c(16000,47),
+kappa=1,nugget=6.9,lambda=0.5))
+plot(sic.100$data,kct1$predict,xlab="Observed",ylab="Estimated",
+main="Sample")
+abline(a=0,b=1,col="red")
+plot(sic.367$data,kct2$predict,,xlab="Observed",ylab="Estimated",
+main="Control sample")
+abline(a=0.0009,b=8.2,col="red")
+
+
+
+````
+`````{r}
+
+# Assuming you have a validation dataset in 'validation_data' with columns 'observed' and 'location'
+# Also assuming 'kct1' and 'kct2' are the kriging results from the previous code
+
+# Extract observed values from validation dataset for sample and control
+observed_sample <- sic.100$data
+observed_control <- sic.367$data  
+
+# Extract kriging predictions for sample and control
+predicted_sample <- kct1$predict
+predicted_control <- kct2$predict
+
+# Calculate RMSE for sample and control
+rmse_sample <- sqrt(mean((observed_sample - predicted_sample)^2))
+rmse_control <- sqrt(mean((observed_control - predicted_control)^2))
+
+# Calculate covariance for sample and control
+#covariance_sample <- cov(observed_sample, predicted_sample)[1, 2]
+#covariance_control <- cov(observed_control, predicted_control)[1, 2]
+
+# Print RMSE and covariance
+cat("RMSE for Sample Data:", rmse_sample, "\n")
+#cat("Covariance for Sample Data:", covariance_sample, "\n")
+
+cat("RMSE for Control Sample Data:", rmse_control, "\n")
+#cat("Covariance for Control Sample Data:", covariance_control, "\n")
+
+````
+````{r}
+# Assuming you have a validation dataset in 'validation_data' with columns 'observed' and 'location'
+# Also assuming 'kct1' and 'kct2' are the kriging results from the previous code
+
+# Extract observed values from validation dataset for sample and control
+observed_sample <- sic.100$data
+observed_control <- sic.367$data  
+
+# Extract kriging predictions for sample and control
+predicted_sample <- kct1$predict
+predicted_control <- kct2$predict
+
+# Calculate RMSE for sample and control
+rmse_sample <- sqrt(mean((observed_sample - predicted_sample)^2))
+rmse_control <- sqrt(mean((observed_control - predicted_control)^2))
+
+# Calculate covariance for sample and control
+#covariance_sample <- cov(observed_sample, predicted_sample)[1, 2]
+#covariance_control <- cov(observed_control, predicted_control)[1, 2]
+
+# Print RMSE and covariance
+cat("RMSE for Sample Data:", rmse_sample, "\n")
+#cat("Covariance for Sample Data:", covariance_sample, "\n")
+
+cat("RMSE for Control Sample Data:", rmse_control, "\n")
+#cat("Covariance for Control Sample Data:", covariance_control, "\n")
+```
